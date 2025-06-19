@@ -1,17 +1,28 @@
-from vertexai.preview.generative_models import GenerativeModel, TuningConfig
-from vertexai.preview import generative_models
+from dotenv import load_dotenv
+import os
+import vertexai
+from vertexai.tuning import sft
 
-# Init Gemini model
-model = GenerativeModel("gemini-1.5-flash-001")
 
-# Define training dataset
-tuned_model = model.tune_model(
-    training_data="gs://gemini-segmentation/wound_dataset_groundingDino/annotations/wound_train.jsonl",
-    model_display_name="wound-detection-gemini",
-    tuning_config=TuningConfig(
-        epoch_count=5,
-        batch_size=4
-    )
+# Load environment variables from .env file
+load_dotenv()
+
+# Retrieve values
+project_id = os.getenv("PROJECT_ID")
+location = os.getenv("LOCATION")
+
+# Initialize Vertex AI
+vertexai.init(project=project_id, location=location)
+
+sft_tuning_job = sft.train(
+    source_model="gemini-2.0-flash-001",
+    train_dataset="gs://gemini-segmentation/wound_dataset_groundingDino/annotations/wound_train.jsonl"
 )
 
-print("✅ Fine-tuning job started:", tuned_model.name)
+# Poll for job completion
+import time
+while not sft_tuning_job.has_ended:
+    time.sleep(60)
+    sft_tuning_job.refresh()
+
+print("✅ Fine-tuning job started:", sft_tuning_job.tuned_model_name)
