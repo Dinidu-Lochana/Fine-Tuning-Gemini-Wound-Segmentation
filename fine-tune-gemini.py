@@ -16,7 +16,8 @@ vertexai.init(project=project_id, location=location)
 
 sft_tuning_job = sft.train(
     source_model="gemini-2.0-flash-001",
-    train_dataset="gs://gemini-segmentation/wound_dataset_groundingDino/annotations/wound_train.jsonl"
+    train_dataset="gs://gemini-segmentation/wound_dataset_groundingDino/annotations/wound_train.jsonl",
+    epochs=15    
 )
 
 # Poll for job completion
